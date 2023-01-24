@@ -1,4 +1,4 @@
-from commandParser import *
+from BOWDN import *
 
 def command_function_to_run_1(argument_token_1, *args, **kwargs):
     flags = kwargs['flags']
@@ -96,6 +96,6 @@ command_dict = {
     }
 }
 
-commands = CommandsDefinition(command_dict)
+commands = CommandCatalogue(command_dict)
 
 print(commands.parse('command_1 -h --example_flag_2 -am="This flag gives it an extra message." This_is_argument_1 "This is argument 2"', kwarg_demo="This is an extra kwarg you can pass through. This can be anything of any type."))
