@@ -5,3 +5,7 @@ version = "1.0.0"
 authors = [
     { name = "Alex Kumpula", email = "" }
 ]
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
