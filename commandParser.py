@@ -46,6 +46,9 @@ class Flag:
         self.accepts_input = accepts_input
         self.default_value_present = default_value_present
         self.default_value_absent  = default_value_absent
+    
+    def __repr__(self):
+        return self.long_name
 
 class FlagValue:
     def __init__(self,
@@ -56,7 +59,7 @@ class FlagValue:
         self.value = value
 
     def __repr__(self):
-        return f"Flag: {self.flag.long_name}, Value: {self.value}"
+        return f"Flag: {self.flag}, Value: {self.value}"
 
 class CommandsDefinition:
     def __init__(self, commands_dict: dict):
