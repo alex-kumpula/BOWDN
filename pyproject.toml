@@ -3,9 +3,10 @@ name = "BOWDN"
 description = "BOWDN makes it easy to define commands that can be run from string inputs."
 version = "1.0.0"
 authors = [
-    { name = "Alex Kumpula", email = "" }
+    { name = "Alex Kumpula" }
 ]
+requires-python = ">=3.7"
 
 [build-system]
-build-backend = "flit_core.buildapi"
-requires = ["flit_core >=3.2,<4"]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

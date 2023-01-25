@@ -1,6 +1,7 @@
 import shlex
 from .command import Command
-from .flag import Flag, FlagValue
+from .flag import Flag
+from .command_context import CommandContext, FlagValue
 
 class CommandCatalogue:
     def __init__(self, commands_dict: dict):
@@ -111,7 +112,7 @@ class CommandCatalogue:
                         token_types.append("Argument")
                         token_objects.append(token)
             i += 1
-        return (token_types, token_objects)
+        return (tuple(token_types), tuple(token_objects))
     
     """
     Takes in a string or "message" and runs the command it indicates,
@@ -145,7 +146,16 @@ class CommandCatalogue:
             j = token_types.index("Argument")
             arguments = token_objects[j:]
         
+        # Creates a CommandContext that will be passed to the command's function for it to consume
+        context = CommandContext(
+            run_command,
+            flags = flags,
+            tokens = token_objects,
+            token_types = token_types,
+            message_raw = message
+        )
+
         if run_command is not None:
-            return run_command.run(*args, *arguments, flags = flags, command = run_command, **kwargs)
+            return run_command.run(*args, *arguments, context = context, **kwargs)
         else:
             print("Command not recognized.")

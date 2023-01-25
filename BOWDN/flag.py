@@ -22,15 +22,3 @@ class Flag:
     
     def __repr__(self):
         return self.long_name
-
-
-class FlagValue:
-    def __init__(self,
-        flag,
-        value
-    ):
-        self.flag = flag
-        self.value = value
-
-    def __repr__(self):
-        return f"Flag: {self.flag}, Value: {self.value}"
