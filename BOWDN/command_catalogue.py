@@ -120,7 +120,7 @@ class CommandCatalogue:
     Also accepts *args and **kwargs and passes it through to the command's 
     function being run.
     """
-    def parse(self, message: str, *args, **kwargs):
+    def parse(self, message: str, default = None, *args, **kwargs):
         token_types, token_objects = self.read_tokens(message)
         run_command = None
         arguments = []
@@ -130,7 +130,10 @@ class CommandCatalogue:
         if "Command" in token_types:
             i = max((index for index, val in enumerate(token_types) if (val == "Command" or val == "Sub Command")), default=None)
             run_command = token_objects[i]
-        
+        # If there is no command found, return a default value
+        else:
+            return default
+
         # Populate the flags dict with the default values if the flags are absent
         for flag in run_command.flags:
             flags[flag.long_name] = flag.default_value_absent
