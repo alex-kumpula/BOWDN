@@ -7,6 +7,7 @@ def command_function_to_run_1(argument_token_1, *args, **kwargs):
     if flags['help'].value:
         print(command.description)
     example_response  = f"This function can return anything, not just strings."
+    example_response += f"\nHere is some extra meta-data about the command: {command.meta_data['example_meta_data_key']}"
     example_response += f"\nPositional argument 1: {argument_token_1}"
     example_response += f"\nPositional argument 2: {args[0]}"
     example_response += f"\nFlags: {flags}"
@@ -33,6 +34,9 @@ command_dict = {
             "alias_3"
         ],
         "description": "This is the description of the command. It can be used for many things like --help flags.",
+        "meta_data": {
+            "example_meta_data_key": "You can specify extra info about a command here!"
+        },
         "flags": {
             "help": {
                 "short_name": "h",
@@ -102,5 +106,7 @@ command_dict = {
 
 commands = CommandCatalogue(command_dict)
 
-# print(commands.parse('command_1 -h --example_flag_2 -am="This flag gives it an extra message." This_is_argument_1 "This is argument 2"', kwarg_demo="This is an extra kwarg you can pass through. This can be anything of any type."))
-print(commands.parse('test'))
+print(commands.parse('command_1 -h --example_flag_2 -am="This flag gives it an extra message." This_is_argument_1 "This is argument 2"', kwarg_demo="This is an extra kwarg you can pass through. This can be anything of any type."))
+
+
+# (commands.parse('test'))

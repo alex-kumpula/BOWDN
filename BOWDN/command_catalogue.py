@@ -20,7 +20,8 @@ class CommandCatalogue:
                 description  = command.get("description", ""),
                 function     = command.get("function", None),
                 flags        = self.get_flags_from_dict(command.get("flags", {})),
-                sub_commands = self.get_commands_from_dict(command.get("sub_commands", {}))
+                sub_commands = self.get_commands_from_dict(command.get("sub_commands", {})),
+                meta_data    = command.get("meta_data", None)
             ))
         return commands
     

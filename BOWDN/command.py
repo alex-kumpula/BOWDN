@@ -2,13 +2,22 @@
 The Command class defines all the components of a command.
 """
 class Command:
-    def __init__(self, name: str, aliases: list = None, description: str = None, function = None, flags: dict = None, sub_commands: dict = None):
+    def __init__(self, 
+        name: str, 
+        aliases: list = None, 
+        description: str = None, 
+        function = None, 
+        flags: dict = None, 
+        sub_commands: dict = None, 
+        meta_data: dict = None
+    ):
         self.name         = name
         self.aliases      = aliases
         self.description  = description
         self.function     = function if function is not None else lambda: print(f"Command {self.name} was ran but does not yet have a function implemented.")
         self.flags        = flags
         self.sub_commands = sub_commands
+        self.meta_data    = meta_data
 
     """
     Tries to run the self.function associated with the command.
