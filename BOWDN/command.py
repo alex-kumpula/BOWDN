@@ -1,32 +1,35 @@
-"""
-The Command class defines all the components of a command.
-"""
+from .exceptions import raise_exception, CommandFunctionNotAssignedException
+
 class Command:
+    """
+    The Command class defines all the components of a command.
+    """ 
     def __init__(self, 
         name: str, 
-        aliases: list = None, 
+        aliases: list = [], 
         description: str = None, 
         function = None, 
-        flags: dict = None, 
-        sub_commands: dict = None, 
-        meta_data: dict = None
+        flags: dict = {}, 
+        sub_commands: dict = {}, 
+        meta_data: dict = {}
     ):
         self.name         = name
         self.aliases      = aliases
         self.description  = description
-        self.function     = function if function is not None else lambda: print(f"Command {self.name} was ran but does not yet have a function implemented.")
+        self.function     = function if function is not None else lambda *args, context = None, **kwargs: raise_exception(CommandFunctionNotAssignedException(f"Command {self.name} was ran but does not yet have a function implemented."))
         self.flags        = flags
         self.sub_commands = sub_commands
         self.meta_data    = meta_data
 
-    """
-    Tries to run the self.function associated with the command.
-    Takes in any amount of *args and **kwargs as input.
-    If there is an exception, print the error to the console and continue.
-    """
     def run(self, *args, **kwargs):
+        """
+        Tries to run the self.function associated with the command.
+        Takes in any amount of *args and **kwargs as input.
+        If there is an exception, reraise it.
+        """
         try:
             return self.function(*args, **kwargs)
         except Exception as e:
-            print(f"Something went wrong: {e}")
+            raise e
             return None
+

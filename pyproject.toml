@@ -1,7 +1,7 @@
 [project]
 name = "BOWDN"
 description = "BOWDN makes it easy to define commands that can be run from string inputs."
-version = "2.2.0"
+version = "2.2.1"
 authors = [
     { name = "Alex Kumpula" }
 ]

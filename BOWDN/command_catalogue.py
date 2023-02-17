@@ -2,6 +2,7 @@ import shlex
 from .command import Command
 from .flag import Flag
 from .command_context import CommandContext, FlagValue
+from .exceptions import CommandNotRecognizedException
 
 class CommandCatalogue:
     def __init__(self, commands_dict: dict):
@@ -21,7 +22,7 @@ class CommandCatalogue:
                 function     = command.get("function", None),
                 flags        = self.get_flags_from_dict(command.get("flags", {})),
                 sub_commands = self.get_commands_from_dict(command.get("sub_commands", {})),
-                meta_data    = command.get("meta_data", None)
+                meta_data    = command.get("meta_data", {})
             ))
         return commands
     
@@ -162,4 +163,4 @@ class CommandCatalogue:
         if run_command is not None:
             return run_command.run(*args, *arguments, context = context, **kwargs)
         else:
-            print("Command not recognized.")
+            raise CommandNotRecognizedException

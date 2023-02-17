@@ -1,7 +1,7 @@
-"""
-The CommandContext class bundles useful information about the execution of a command.
-"""
 class CommandContext:
+    """
+    The CommandContext class bundles useful information about the execution of a command.
+    """
     def __init__(self,
         command,
         flags       = {},
