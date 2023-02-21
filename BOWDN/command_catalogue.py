@@ -9,13 +9,14 @@ class CommandCatalogue:
         self.commands_dict = commands_dict
         self.commands = self.get_commands_from_dict(self.commands_dict)
     
-    """
-    Parses a user-defined dict of a certain structure into a CommandsDefinition class.
-    """
+    
     def get_commands_from_dict(self, input_dict):
-        commands = []
+        """
+        Parses a user-defined dict of a certain structure into a CommandsDefinition class.
+        """
+        commands = {}
         for command_name, command in input_dict.items():
-            commands.append(Command(
+            commands[command_name] = Command(
                 name         = command_name, 
                 aliases      = command.get("aliases", []),
                 description  = command.get("description", ""),
@@ -23,13 +24,14 @@ class CommandCatalogue:
                 flags        = self.get_flags_from_dict(command.get("flags", {})),
                 sub_commands = self.get_commands_from_dict(command.get("sub_commands", {})),
                 meta_data    = command.get("meta_data", {})
-            ))
+            )
         return commands
     
-    """
-    Parses a user-defined dict of flags into a list of Flags.
-    """
+    
     def get_flags_from_dict(self, input_dict_flags):
+        """
+        Parses a user-defined dict of flags into a list of Flags.
+        """
         flags = []
         for flag_name, flag in input_dict_flags.items():
             flags.append(Flag(
@@ -43,87 +45,83 @@ class CommandCatalogue:
             ))
         return flags
 
-    """
-    Takes a string and turns it into a list of tokens delimited by whitespace, 
-    accounting for substrings.
-    """
+
     def tokenize_string(self, string: str):
+        """
+        Takes a string and turns it into a list of tokens delimited by whitespace, 
+        accounting for substrings.
+        """
         string = string.strip()
         # shlex.split preserves substrings when it splits
         tokens = shlex.split(string)
         return tokens
 
-    """
-    Takes an input string or "message" and returns two lists:
-    -   A list of token types (token_types): ie. Command, Sub Command, Flag, Argument
-    -   A list of token objects (token_objects): ie. Command (class), 
-        Flags (just long name) and their values, and Arguments
-    """
-    def read_tokens(self, message: str):
+    
+    def get_command(self, token):
+        if token in self.commands.keys():
+            return self.commands[token]
+        else:
+            for command in self.commands.values():
+                if token in command.aliases:
+                    return command
+        return None
+
+    def classify_tokens(self, message: str):
+        """
+        Takes an input string or "message" and returns two lists:
+        -   A list of token types (token_types): ie. Command, Sub Command, Flag, Argument
+        -   A list of token objects (token_objects): ie. Command (class), 
+            Flags (just long name) and their values, and Arguments
+        """
+
         tokens = self.tokenize_string(message)
         token_types = []
         token_objects = []
 
-        i = 0
-        recognized_command = False
-        while i < len(self.commands) and not recognized_command:
-            command = self.commands[i]
-            token_types = []
-            token_objects = []
-            for j in range(len(tokens)):
-                token = tokens[j]
-                # Find base command
-                if j == 0:
-                    if (token == command.name or token in command.aliases):
-                        token_types.append("Command")
-                        token_objects.append(command)
-                        recognized_command = True
-                # Everything else
-                if j >= 1 and recognized_command:
-                    # Find sub command(s)
-                    for sub_command in command.sub_commands:
-                        if token == sub_command.name or token in sub_command.aliases:
-                            token_types.append("Sub Command")
-                            token_objects.append(sub_command)
-                    # Find flag(s)
-                    for flag in command.flags:
-                        flag_value = None
-                        flag_end_index = len(token)
-                        if "=" in token:
-                            flag_end_index = token.find("=")
-                            if len(token) - 1 > flag_end_index:
-                                flag_value = token[flag_end_index + 1:]
-                        # Long flags
-                        if len(token) >= 3 and token[0:2] == "--":
-                            input_flag = token[2:flag_end_index]
-                            if input_flag == flag.long_name or input_flag in flag.long_aliases:
-                                token_types.append("Flag")
-                                if not flag.accepts_input or flag_value is None:
-                                    flag_value = flag.default_value_present
-                                token_objects.append((flag.long_name, FlagValue(flag, flag_value)))
-                        # Short flags
-                        elif len(token) >= 2 and token[0] == "-":
-                            input_flag = token[1:flag_end_index]
-                            if input_flag == flag.short_name or input_flag in flag.short_aliases:
-                                token_types.append("Flag")
-                                if not flag.accepts_input or flag_value is None:
-                                    flag_value = flag.default_value_present
-                                token_objects.append((flag.long_name, FlagValue(flag, flag_value)))
-                    # If none of the above has been found, assume the token is an argument
-                    if len(token_types) - 1 < j:
-                        token_types.append("Argument")
-                        token_objects.append(token)
-            i += 1
+        last_command = None
+        for token in tokens:
+            if "Command" not in token_types:
+                command = self.get_command(token)
+                if command is not None:
+                    token_types.append("Command")
+                    token_objects.append(command)
+                    last_command = command
+                    continue
+                else:
+                    raise CommandNotRecognizedException
+            
+            token_type_last = token_types[-1]
+            token_object_last = token_objects[-1]
+
+            if token_type_last in ["Command", "Sub Command"]:
+                sub_command = token_object_last.get_sub_command(token)
+                if sub_command is not None:
+                    token_types.append("Sub Command")
+                    token_objects.append(sub_command)
+                    last_command = sub_command
+                    continue
+            
+            if token_type_last in ["Command", "Sub Command", "Flag"]:
+                flag = last_command.get_flag(token)
+                if flag is not None:
+                    token_types.append("Flag")
+                    token_objects.append(flag)
+                    continue
+            
+            token_types.append("Argument")
+            token_objects.append(token)
+            continue
+        
         return (tuple(token_types), tuple(token_objects))
-    
-    """
-    Takes in a string or "message" and runs the command it indicates,
-    with the flags and positional arguments being passed through.
-    Also accepts *args and **kwargs and passes it through to the command's 
-    function being run.
-    """
+
     def parse(self, message: str, default = None, *args, **kwargs):
-        token_types, token_objects = self.read_tokens(message)
+        """
+        Takes in a string or "message" and runs the command it indicates,
+        with the flags and positional arguments being passed through.
+        Also accepts *args and **kwargs and passes it through to the command's 
+        function being run.
+        """
+        token_types, token_objects = self.classify_tokens(message)
         run_command = None
         arguments = []
         flags = {}
@@ -143,7 +141,8 @@ class CommandCatalogue:
         # Populate the flags dict with their values (default or inputted) if they are present
         for k in range(len(token_types)):
             if token_types[k] == "Flag":
-                flag_name, flag_value_pair = token_objects[k]
+                flag_value_pair = token_objects[k]
+                flag_name = flag_value_pair.flag.long_name
                 flags[flag_name] = flag_value_pair
 
         # The rest of the tokens are assumed to be argumments
